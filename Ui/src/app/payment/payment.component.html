@@ -1,0 +1,43 @@
+<div class="container mt-3">
+  <h1>Licenses</h1>
+
+  @if (company) {
+    <h2 class="text-center">Hello {{ company.companyName }}</h2>
+    @if (company.stripeCustomerId) {
+      <div class="d-flex justify-content-center mb-3">
+        <button (click)="goToPortal()" class="btn btn-primary">Manage subscription on stripe</button>
+      </div>
+      @if (companyLicense) {
+        <div class="row">
+          <div class="col-6 offset-3">
+            <div class="card text-bg-light text-center">
+              <div class="card-body">
+                <h5 class="card-title">{{ companyLicense.subscriptionName }}</h5>
+                <p>Price: {{ companyLicense.price.toFixed(2) }} CHF</p>
+                <p class="card-text">{{ companyLicense.description }}</p>
+                <p class="card-text">Expired at: {{ companyLicense.expiredAt | date: 'dd.MM.yyyy HH.mm' }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+    } @else {
+      <div class="row">
+        @for (licenceType of licenseTypes; track licenceType.id) {
+          <div class="col-sm-6 mb-3 mb-sm-0">
+            <div class="card text-bg-light text-center">
+              <div class="card-body">
+                <h5 class="card-title">{{ licenceType.name }}</h5>
+                <p>Price: {{ licenceType.price.toFixed(2) }} CHF</p>
+                <p class="card-text">{{ licenceType.description }}</p>
+                <a (click)="onCreateOrder(licenceType)" class="btn btn-primary">Subscribe to {{ licenceType.name }}</a>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  } @else {
+  <h2>NO COMPANY</h2>
+}
+</div>

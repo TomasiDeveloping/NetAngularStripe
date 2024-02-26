@@ -1,0 +1,6 @@
+@NetAngularStripe_HostAddress = http://localhost:5099
+
+GET {{NetAngularStripe_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
