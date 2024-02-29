@@ -43,7 +43,7 @@ public class ApplicationContext(DbContextOptions<ApplicationContext> options) : 
             new()
             {
                 Id = new Guid("CDB8E8AC-27E8-430A-B67D-03C2F3E85273"),
-                StripePriceId = "price_1OnKKcBuMtj0mRD4Eyo3m038",
+                StripePriceId = "YOUR_PRICE_ID",
                 Description = "This is a standard test subscription",
                 Name = "Standard Subscription",
                 Price = 20.00m
@@ -51,7 +51,7 @@ public class ApplicationContext(DbContextOptions<ApplicationContext> options) : 
             new()
             {
                 Id = new Guid("846C0B14-BA0C-4757-8D7F-40D895A7EBC2"),
-                StripePriceId = "price_1OnKLEBuMtj0mRD4Hgv3DV5o",
+                StripePriceId = "YOUR_PRICE_ID",
                 Description = "This is a premium subscription",
                 Name = "Premium Subscription",
                 Price = 50.00m
