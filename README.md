@@ -17,14 +17,14 @@ This is a small demo application demonstrating how to offer subscriptions via St
 ### Backend
 
 1. Clone the repository: `git clone https://github.com/TomasiDeveloping/NetAngularStripe.git`
-2. Navigate to the backend directory: `cd backend`
+2. Navigate to the backend directory: `cd NetAngularStripe`
 3. Install dependencies: `dotnet restore`
 4. Configure your Stripe API keys in the `appsettings.json` file
 5. Start the server: `dotnet run`
 
 ### Frontend
 
-1. Navigate to the frontend directory: `cd frontend`
+1. Navigate to the frontend directory: `cd Ui`
 2. Install dependencies: `npm install`
 3. Start the application: `ng serve`
 
