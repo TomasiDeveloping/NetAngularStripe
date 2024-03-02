@@ -13,16 +13,26 @@ using Subscription = Stripe.Subscription;
 
 namespace NetAngularStripe.Controllers;
 
+/// <summary>
+///     Controller for handling payment-related operations.
+/// </summary>
 [Route("api/[controller]")]
 [ApiController]
-public class PaymentsController(IStripeCheckoutRepository stripeCheckoutRepository, ILogger<PaymentsController> logger, IOptions<StripeSettings> stripeSettings)
+public class PaymentsController(
+    IStripeCheckoutRepository stripeCheckoutRepository,
+    ILogger<PaymentsController> logger,
+    IOptions<StripeSettings> stripeSettings)
     : ControllerBase
 {
+    /// <summary>
+    ///     Initiates a new checkout session.
+    /// </summary>
     [HttpPost("checkout")]
     public async Task<IActionResult> Checkout(StripeCheckoutRequestDto request)
     {
         try
         {
+            // Configure options for checkout session creation
             var options = new SessionCreateOptions
             {
                 LineItems =
@@ -40,11 +50,14 @@ public class PaymentsController(IStripeCheckoutRepository stripeCheckoutReposito
             var service = new SessionService();
             try
             {
+                // Create a new checkout session
                 var session = await service.CreateAsync(options);
 
+                // Create response for client
                 var response = new StripeCheckoutResponse(session.Id, stripeSettings.Value.PublicKey);
 
-                await stripeCheckoutRepository.AddAsync(new StripeCheckout()
+                // Add the new checkout session to the repository
+                await stripeCheckoutRepository.AddAsync(new StripeCheckout
                 {
                     StripeSessionId = session.Id,
                     CompanyId = request.CompanyId,
@@ -57,6 +70,7 @@ public class PaymentsController(IStripeCheckoutRepository stripeCheckoutReposito
             }
             catch (StripeException ex)
             {
+                // Log any Stripe-specific exceptions
                 logger.LogError("Stripe error: {error}", ex.StripeError);
                 return BadRequest(ex.StripeError.Message);
             }
@@ -68,26 +82,33 @@ public class PaymentsController(IStripeCheckoutRepository stripeCheckoutReposito
         }
     }
 
-
+    /// <summary>
+    ///     Initiates a new customer portal session.
+    /// </summary>
     [HttpPost("customerPortal")]
     public async Task<IActionResult> CustomerPortal(StripeCustomerPortalRequest request)
     {
         try
         {
-            var configuration = new ConfigurationCreateOptions()
+            // Configure options for customer portal session creation
+            var configuration = new ConfigurationCreateOptions
             {
+                // Configure business profile
                 BusinessProfile = new ConfigurationBusinessProfileOptions
                 {
                     Headline = ""
                 },
-                Features = new ConfigurationFeaturesOptions()
+                // Configure features of the portal
+                Features = new ConfigurationFeaturesOptions
                 {
-                    CustomerUpdate = new ConfigurationFeaturesCustomerUpdateOptions()
+                    // Enable customer update feature
+                    CustomerUpdate = new ConfigurationFeaturesCustomerUpdateOptions
                     {
                         Enabled = true,
                         AllowedUpdates = StripeHelpers.CustomerUpdate.GetAllAllowedUpdates()
                     },
-                    SubscriptionUpdate = new ConfigurationFeaturesSubscriptionUpdateOptions()
+                    // Configure subscription update feature
+                    SubscriptionUpdate = new ConfigurationFeaturesSubscriptionUpdateOptions
                     {
                         DefaultAllowedUpdates = [StripeHelpers.SubscriptionUpdate.DefaultAllowedUpdates.Price],
                         Enabled = true,
@@ -100,34 +121,40 @@ public class PaymentsController(IStripeCheckoutRepository stripeCheckoutReposito
                             }
                         ]
                     },
-                    PaymentMethodUpdate = new ConfigurationFeaturesPaymentMethodUpdateOptions()
+                    // Enable payment method update feature
+                    PaymentMethodUpdate = new ConfigurationFeaturesPaymentMethodUpdateOptions
                     {
                         Enabled = true
                     },
-                    InvoiceHistory = new ConfigurationFeaturesInvoiceHistoryOptions()
+                    // Enable invoice history feature
+                    InvoiceHistory = new ConfigurationFeaturesInvoiceHistoryOptions
                     {
                         Enabled = true
                     },
-                    SubscriptionCancel = new ConfigurationFeaturesSubscriptionCancelOptions()
+                    // Configure subscription cancel feature
+                    SubscriptionCancel = new ConfigurationFeaturesSubscriptionCancelOptions
                     {
                         Enabled = true,
                         Mode = StripeHelpers.SubscriptionCancel.Mode.AtPeriodEnd,
-                        CancellationReason = new ConfigurationFeaturesSubscriptionCancelCancellationReasonOptions()
+                        CancellationReason = new ConfigurationFeaturesSubscriptionCancelCancellationReasonOptions
                         {
                             Enabled = true,
-                            Options = StripeHelpers.SubscriptionCancel.CancellationReason.GetAllCancellationReasonOptions()
+                            Options = StripeHelpers.SubscriptionCancel.CancellationReason
+                                .GetAllCancellationReasonOptions()
                         }
                     },
-                    SubscriptionPause = new ConfigurationFeaturesSubscriptionPauseOptions()
+                    // Disable subscription pause feature
+                    SubscriptionPause = new ConfigurationFeaturesSubscriptionPauseOptions
                     {
                         Enabled = false
                     }
-                },
+                }
             };
-      
+
             var configureService = new ConfigurationService();
             var configureConfiguration = await configureService.CreateAsync(configuration);
 
+            // Configure options for customer portal session creation
             var options = new Stripe.BillingPortal.SessionCreateOptions
             {
                 Customer = request.StripeCustomerId,
@@ -138,6 +165,7 @@ public class PaymentsController(IStripeCheckoutRepository stripeCheckoutReposito
             var service = new Stripe.BillingPortal.SessionService();
             var session = await service.CreateAsync(options);
 
+            // Create response for client
             var response = new StripeCustomerPortalResponse(session.Url);
 
             return Ok(response);
@@ -149,6 +177,10 @@ public class PaymentsController(IStripeCheckoutRepository stripeCheckoutReposito
         }
     }
 
+
+    /// <summary>
+    ///     Processes webhook events from Stripe.
+    /// </summary>
     [HttpPost("webhook")]
     public async Task<IActionResult> WebHook()
     {
@@ -156,18 +188,18 @@ public class PaymentsController(IStripeCheckoutRepository stripeCheckoutReposito
 
         try
         {
+            // Construct the event from the incoming webhook data
             var stripeEvent = EventUtility.ConstructEvent(json,
                 Request.Headers["Stripe-Signature"], stripeSettings.Value.WHSecret, 300,
                 (long)DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1)).TotalSeconds,
                 false);
 
+            // Handle the event based on its type
             switch (stripeEvent.Type)
             {
                 case Events.CustomerSubscriptionUpdated:
                     if (stripeEvent.Data.Object is Subscription subscription)
-                    {
                         await stripeCheckoutRepository.HandleUpdateSubscription(subscription);
-                    }
                     break;
                 default:
                     logger.LogInformation("{0}: Unhandled event type: {1}", DateTime.Now, stripeEvent.Type);
@@ -183,6 +215,10 @@ public class PaymentsController(IStripeCheckoutRepository stripeCheckoutReposito
         }
     }
 
+
+    /// <summary>
+    ///     Redirects the user to a success page after completing a checkout session.
+    /// </summary>
     [HttpGet("success")]
     public async Task<IActionResult> CheckoutSuccess([FromQuery] string sessionId)
     {
@@ -191,9 +227,10 @@ public class PaymentsController(IStripeCheckoutRepository stripeCheckoutReposito
             var sessionService = new SessionService();
             var session = await sessionService.GetAsync(sessionId);
 
+            // Handle success of checkout session
             await stripeCheckoutRepository.HandleSuccessAsync(sessionId, session.CustomerId);
 
-
+            // Redirect to success page
             return Redirect(stripeSettings.Value.FrontendSuccessUrl);
         }
         catch (Exception ex)
@@ -203,13 +240,18 @@ public class PaymentsController(IStripeCheckoutRepository stripeCheckoutReposito
         }
     }
 
+    /// <summary>
+    ///     Redirects the user to a canceled page if the checkout session is canceled.
+    /// </summary>
     [HttpGet("canceled")]
     public async Task<IActionResult> CheckoutCanceled([FromQuery] string sessionId)
     {
         try
         {
+            // Handle cancellation of checkout session
             await stripeCheckoutRepository.HandleCancel(sessionId);
-            // Insert here failure data in data base
+
+            // Redirect to canceled page
             return Redirect(stripeSettings.Value.FrontendCancelUrl);
         }
         catch (Exception ex)
