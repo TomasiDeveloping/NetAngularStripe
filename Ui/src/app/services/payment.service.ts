@@ -11,14 +11,21 @@ import {StripeCustomerPortalResponseModel} from "../models/stripe/stripeCustomer
 })
 export class PaymentService {
 
+  // Inject HttpClient dependency
   private readonly _httpClient: HttpClient = inject(HttpClient);
+
+  // Service URL for payment-related API endpoints
   private readonly _serviceUrl: string = 'https://localhost:7054/api/payments'
 
+  // Method to get Stripe checkout session ID
   getSessionId(stripeCheckoutRequest: StripeCheckoutRequestModel): Observable<StripeCheckoutResponseModel> {
+    // Send POST request to checkout endpoint and return Observable of StripeCheckoutResponseModel
     return this._httpClient.post<StripeCheckoutResponseModel>(this._serviceUrl + '/checkout', stripeCheckoutRequest);
   }
 
+  // Method to redirect to Stripe customer portal
   redirectToCustomerPortal(stripeCustomerPortalRequest: StripeCustomerPortalRequestModel): Observable<StripeCustomerPortalResponseModel> {
+    // Send POST request to customerPortal endpoint and return Observable of StripeCustomerPortalResponseModel
     return this._httpClient.post<StripeCustomerPortalResponseModel>(this._serviceUrl + '/customerPortal', stripeCustomerPortalRequest);
 
   }

@@ -1,17 +1,26 @@
 <div class="container mt-3">
+  <!-- Main heading for licenses -->
   <h1>Licenses</h1>
 
+  <!-- Check if company data exists -->
   @if (company) {
+    <!-- Display company name if available -->
     <h2 class="text-center">Hello {{ company.companyName }}</h2>
+
+    <!-- Check if company has a Stripe customer ID -->
     @if (company.stripeCustomerId) {
+      <!-- Button to manage subscription on Stripe -->
       <div class="d-flex justify-content-center mb-3">
         <button (click)="goToPortal()" class="btn btn-primary">Manage subscription on stripe</button>
       </div>
+
+      <!-- Check if company has an active license -->
       @if (companyLicense) {
         <div class="row">
           <div class="col-6 offset-3">
             <div class="card text-bg-light text-center">
               <div class="card-body">
+                <!-- Display subscription details -->
                 <h5 class="card-title">{{ companyLicense.subscriptionName }}</h5>
                 <p>Price: {{ companyLicense.price.toFixed(2) }} CHF</p>
                 <p class="card-text">{{ companyLicense.description }}</p>
@@ -22,14 +31,18 @@
         </div>
       }
     } @else {
+      <!-- Display available license types -->
       <div class="row">
+        <!-- Loop through each license type -->
         @for (licenceType of licenseTypes; track licenceType.id) {
           <div class="col-sm-6 mb-3 mb-sm-0">
             <div class="card text-bg-light text-center">
               <div class="card-body">
+                <!-- Display license type details -->
                 <h5 class="card-title">{{ licenceType.name }}</h5>
                 <p>Price: {{ licenceType.price.toFixed(2) }} CHF</p>
                 <p class="card-text">{{ licenceType.description }}</p>
+                <!-- Button to subscribe to a license type -->
                 <a (click)="onCreateOrder(licenceType)" class="btn btn-primary">Subscribe to {{ licenceType.name }}</a>
               </div>
             </div>
@@ -38,6 +51,7 @@
       </div>
     }
   } @else {
-  <h2>NO COMPANY</h2>
-}
+    <!-- Display message if no company data -->
+    <h2>NO COMPANY</h2>
+  }
 </div>
