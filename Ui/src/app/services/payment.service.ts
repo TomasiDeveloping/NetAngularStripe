@@ -1,8 +1,6 @@
 import {inject, Injectable} from '@angular/core';
 import {HttpClient} from "@angular/common/http";
 import {Observable} from "rxjs";
-import {CheckoutResponseModel} from "../checkoutResponse.model";
-import {environment} from "../../environments/environment";
 import {StripeCheckoutRequestModel} from "../models/stripe/stripeCheckoutRequest.model";
 import {StripeCheckoutResponseModel} from "../models/stripe/stripeCheckoutResponse.model";
 import {StripeCustomerPortalRequestModel} from "../models/stripe/stripeCustomerPortalRequest.model";

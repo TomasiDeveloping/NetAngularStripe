@@ -5,7 +5,10 @@ using NetAngularStripe.Dto.Stripe;
 using NetAngularStripe.Helper;
 using NetAngularStripe.Interfaces;
 using Stripe;
+using Stripe.BillingPortal;
 using Stripe.Checkout;
+using SessionCreateOptions = Stripe.Checkout.SessionCreateOptions;
+using SessionService = Stripe.Checkout.SessionService;
 using Subscription = Stripe.Subscription;
 
 namespace NetAngularStripe.Controllers;
@@ -71,10 +74,66 @@ public class PaymentsController(IStripeCheckoutRepository stripeCheckoutReposito
     {
         try
         {
+            var configuration = new ConfigurationCreateOptions()
+            {
+                BusinessProfile = new ConfigurationBusinessProfileOptions
+                {
+                    Headline = ""
+                },
+                Features = new ConfigurationFeaturesOptions()
+                {
+                    CustomerUpdate = new ConfigurationFeaturesCustomerUpdateOptions()
+                    {
+                        Enabled = true,
+                        AllowedUpdates = StripeHelpers.CustomerUpdate.GetAllAllowedUpdates()
+                    },
+                    SubscriptionUpdate = new ConfigurationFeaturesSubscriptionUpdateOptions()
+                    {
+                        DefaultAllowedUpdates = [StripeHelpers.SubscriptionUpdate.DefaultAllowedUpdates.Price],
+                        Enabled = true,
+                        Products =
+                        [
+                            new ConfigurationFeaturesSubscriptionUpdateProductOptions
+                            {
+                                Prices = ["price_1OpqVTBuMtj0mRD4l8g8Cqiv"],
+                                Product = "prod_PfArP1Npd6EYWr"
+                            }
+                        ]
+                    },
+                    PaymentMethodUpdate = new ConfigurationFeaturesPaymentMethodUpdateOptions()
+                    {
+                        Enabled = true
+                    },
+                    InvoiceHistory = new ConfigurationFeaturesInvoiceHistoryOptions()
+                    {
+                        Enabled = true
+                    },
+                    SubscriptionCancel = new ConfigurationFeaturesSubscriptionCancelOptions()
+                    {
+                        Enabled = true,
+                        Mode = StripeHelpers.SubscriptionCancel.Mode.AtPeriodEnd,
+                        CancellationReason = new ConfigurationFeaturesSubscriptionCancelCancellationReasonOptions()
+                        {
+                            Enabled = true,
+                            Options = StripeHelpers.SubscriptionCancel.CancellationReason.GetAllCancellationReasonOptions()
+                        }
+                    },
+                    SubscriptionPause = new ConfigurationFeaturesSubscriptionPauseOptions()
+                    {
+                        Enabled = false
+                    }
+                },
+            };
+      
+            var configureService = new ConfigurationService();
+            var configureConfiguration = await configureService.CreateAsync(configuration);
+
             var options = new Stripe.BillingPortal.SessionCreateOptions
             {
                 Customer = request.StripeCustomerId,
-                ReturnUrl = "http://localhost:4200"
+                ReturnUrl = "http://localhost:4200",
+                Configuration = configureConfiguration.Id,
+                Locale = "de"
             };
             var service = new Stripe.BillingPortal.SessionService();
             var session = await service.CreateAsync(options);
