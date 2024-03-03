@@ -50,8 +50,8 @@ This demo application is open to contributions. If you find an issue or would li
    - Ensure both the backend and frontend are up and running as per the previous instructions.
 
 2. **Displaying Available Subscriptions**:
-   - Upon application startup, a company and two subscriptions are automatically created.
-   - If the company lacks a StripeCustomerId, the two subscriptions are displayed in the frontend.
+   - Upon application startup, a company and three subscriptions are automatically created.
+   - If the company lacks a StripeCustomerId, the three subscriptions are displayed in the frontend.
 
 3. **Selecting a Subscription**:
    - Choose the desired subscription by clicking on the respective button.
