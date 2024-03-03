@@ -1,3 +1,11 @@
+<p align="left">
+<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/angularjs/angularjs-original.svg" width="45" height="45"/>
+<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/csharp/csharp-original.svg" width="45" height="45"/>
+<img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/dotnetcore/dotnetcore-original.svg" width="45" height="45"/>
+<img src="https://www.svgrepo.com/show/331592/stripe-v2.svg" width="45" height="45"/>
+
+
+
 # Stripe Subscription Demo App
 
 This is a small demo application demonstrating how to offer subscriptions via Stripe and allow customers to subscribe to them.
