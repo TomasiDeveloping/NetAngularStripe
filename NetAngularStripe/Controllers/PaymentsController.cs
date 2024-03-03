@@ -99,7 +99,7 @@ public class PaymentsController(
                 Locale = "de"
             };
 
-            if (stripeSettings.Value.WithStandardCustomerPortal)
+            if (!stripeSettings.Value.WithStandardCustomerPortal)
             {
                 // Configure options for customer portal session creation
                 var configuration = await CreateCustomerPortalOptions();
