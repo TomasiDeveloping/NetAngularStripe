@@ -34,6 +34,11 @@ public class LicenseType
     public required string StripePriceId { get; set; }
 
     /// <summary>
+    /// Gets or sets the Stripe product ID associated with the license type.
+    /// </summary>
+    public required string StripeProductId { get; set; }
+
+    /// <summary>
     /// Gets or sets the collection of licenses associated with the license type.
     /// </summary>
     public ICollection<License> Licenses { get; set; } = [];

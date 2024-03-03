@@ -27,7 +27,7 @@ public class LicenseTypeRepository(ApplicationContext context) : ILicenseTypeRep
         return licenseType is null
             ? null
             : new LicenseTypeDto(licenseType.Id, licenseType.Name, licenseType.Description, licenseType.Price,
-                licenseType.StripePriceId);
+                licenseType.StripePriceId, licenseType.StripeProductId);
     }
 
     /// <summary>
@@ -45,7 +45,7 @@ public class LicenseTypeRepository(ApplicationContext context) : ILicenseTypeRep
         if (licenseTypes.Count == 0) return licenseTypeDtoList;
 
         licenseTypeDtoList.AddRange(licenseTypes.Select(licenseType => new LicenseTypeDto(licenseType.Id,
-            licenseType.Name, licenseType.Description, licenseType.Price, licenseType.StripePriceId)));
+            licenseType.Name, licenseType.Description, licenseType.Price, licenseType.StripePriceId, licenseType.StripeProductId)));
 
         return licenseTypeDtoList;
     }

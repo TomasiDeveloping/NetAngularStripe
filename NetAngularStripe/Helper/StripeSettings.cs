@@ -39,4 +39,9 @@ public class StripeSettings
     ///     Gets or sets the Stripe cancel URL.
     /// </summary>
     public required string StripeCancelUrl { get; set; }
+
+    /// <summary>
+    /// Indicates if the standard customer portal is enabled or not.
+    /// </summary>
+    public required bool WithStandardCustomerPortal { get; set; }
 }

@@ -20,6 +20,7 @@ namespace NetAngularStripe.Controllers;
 [ApiController]
 public class PaymentsController(
     IStripeCheckoutRepository stripeCheckoutRepository,
+    ILicenseTypeRepository licenseTypeRepository,
     ILogger<PaymentsController> logger,
     IOptions<StripeSettings> stripeSettings)
     : ControllerBase
@@ -91,77 +92,20 @@ public class PaymentsController(
         try
         {
             // Configure options for customer portal session creation
-            var configuration = new ConfigurationCreateOptions
-            {
-                // Configure business profile
-                BusinessProfile = new ConfigurationBusinessProfileOptions
-                {
-                    Headline = ""
-                },
-                // Configure features of the portal
-                Features = new ConfigurationFeaturesOptions
-                {
-                    // Enable customer update feature
-                    CustomerUpdate = new ConfigurationFeaturesCustomerUpdateOptions
-                    {
-                        Enabled = true,
-                        AllowedUpdates = StripeHelpers.CustomerUpdate.GetAllAllowedUpdates()
-                    },
-                    // Configure subscription update feature
-                    SubscriptionUpdate = new ConfigurationFeaturesSubscriptionUpdateOptions
-                    {
-                        DefaultAllowedUpdates = [StripeHelpers.SubscriptionUpdate.DefaultAllowedUpdates.Price],
-                        Enabled = true,
-                        Products =
-                        [
-                            new ConfigurationFeaturesSubscriptionUpdateProductOptions
-                            {
-                                Prices = ["price_1OpqVTBuMtj0mRD4l8g8Cqiv"],
-                                Product = "prod_PfArP1Npd6EYWr"
-                            }
-                        ]
-                    },
-                    // Enable payment method update feature
-                    PaymentMethodUpdate = new ConfigurationFeaturesPaymentMethodUpdateOptions
-                    {
-                        Enabled = true
-                    },
-                    // Enable invoice history feature
-                    InvoiceHistory = new ConfigurationFeaturesInvoiceHistoryOptions
-                    {
-                        Enabled = true
-                    },
-                    // Configure subscription cancel feature
-                    SubscriptionCancel = new ConfigurationFeaturesSubscriptionCancelOptions
-                    {
-                        Enabled = true,
-                        Mode = StripeHelpers.SubscriptionCancel.Mode.AtPeriodEnd,
-                        CancellationReason = new ConfigurationFeaturesSubscriptionCancelCancellationReasonOptions
-                        {
-                            Enabled = true,
-                            Options = StripeHelpers.SubscriptionCancel.CancellationReason
-                                .GetAllCancellationReasonOptions()
-                        }
-                    },
-                    // Disable subscription pause feature
-                    SubscriptionPause = new ConfigurationFeaturesSubscriptionPauseOptions
-                    {
-                        Enabled = false
-                    }
-                }
-            };
-
-            var configureService = new ConfigurationService();
-            var configureConfiguration = await configureService.CreateAsync(configuration);
-
-            // Configure options for customer portal session creation
             var options = new Stripe.BillingPortal.SessionCreateOptions
             {
                 Customer = request.StripeCustomerId,
                 ReturnUrl = "http://localhost:4200",
-                Configuration = configureConfiguration.Id,
                 Locale = "de"
             };
+
+            if (stripeSettings.Value.WithStandardCustomerPortal)
+            {
+                // Configure options for customer portal session creation
+                var configuration = await CreateCustomerPortalOptions();
+                options.Configuration = configuration.Id;
+            }
+
             var service = new Stripe.BillingPortal.SessionService();
             var session = await service.CreateAsync(options);
 
@@ -259,5 +203,81 @@ public class PaymentsController(
             logger.LogError("error into order Controller on route /canceled " + ex.Message);
             return BadRequest();
         }
+    }
+
+    private async Task<Configuration> CreateCustomerPortalOptions()
+    {
+        // Fetch subscription-related license types asynchronously from the repository
+        var licenceTypes = await licenseTypeRepository.GetSubscriptionsAsync();
+
+        // Configure options for customer portal session creation
+        var configuration = new ConfigurationCreateOptions
+        {
+            // Configure business profile
+            BusinessProfile = new ConfigurationBusinessProfileOptions
+            {
+                Headline = ""
+            },
+            // Configure features of the portal
+            Features = new ConfigurationFeaturesOptions
+            {
+                // Enable customer update feature
+                CustomerUpdate = new ConfigurationFeaturesCustomerUpdateOptions
+                {
+                    Enabled = true,
+                    AllowedUpdates = StripeHelpers.CustomerUpdate.GetAllAllowedUpdates()
+                },
+                // Configure subscription update feature
+                SubscriptionUpdate = new ConfigurationFeaturesSubscriptionUpdateOptions
+                {
+                    DefaultAllowedUpdates = [StripeHelpers.SubscriptionUpdate.DefaultAllowedUpdates.Price],
+                    Enabled = true,
+                    Products = []
+                },
+                // Enable payment method update feature
+                PaymentMethodUpdate = new ConfigurationFeaturesPaymentMethodUpdateOptions
+                {
+                    Enabled = true
+                },
+                // Enable invoice history feature
+                InvoiceHistory = new ConfigurationFeaturesInvoiceHistoryOptions
+                {
+                    Enabled = true
+                },
+                // Configure subscription cancel feature
+                SubscriptionCancel = new ConfigurationFeaturesSubscriptionCancelOptions
+                {
+                    Enabled = true,
+                    Mode = StripeHelpers.SubscriptionCancel.Mode.AtPeriodEnd,
+                    CancellationReason = new ConfigurationFeaturesSubscriptionCancelCancellationReasonOptions
+                    {
+                        Enabled = true,
+                        Options = StripeHelpers.SubscriptionCancel.CancellationReason
+                            .GetAllCancellationReasonOptions()
+                    }
+                },
+                // Disable subscription pause feature
+                SubscriptionPause = new ConfigurationFeaturesSubscriptionPauseOptions
+                {
+                    Enabled = false
+                }
+            }
+        };
+
+        // Iterate through each license type and add corresponding product options for subscription update feature
+        foreach (var licenceType in licenceTypes)
+        {
+            configuration.Features.SubscriptionUpdate.Products.Add(new ConfigurationFeaturesSubscriptionUpdateProductOptions()
+            {
+                // Set the price ID associated with the license type
+                Prices = [licenceType.StripePriceId],
+                // Set the product ID associated with the license type
+                Product = licenceType.StripeProductId
+            });
+        }
+
+        // Create a new configuration service and return the asynchronously created configuration
+        var service = new ConfigurationService();
+        return await service.CreateAsync(configuration);
     }
 }

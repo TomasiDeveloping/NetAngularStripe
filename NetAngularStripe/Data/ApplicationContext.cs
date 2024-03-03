@@ -59,10 +59,20 @@ public class ApplicationContext(DbContextOptions<ApplicationContext> options) : 
         modelBuilder.Entity<LicenseType>().Property(s => s.Name).IsRequired().HasMaxLength(200);
         modelBuilder.Entity<LicenseType>().HasData(new List<LicenseType>
         {
+            new ()
+            {
+                Id = new Guid("C3E97FC9-6CAF-4440-BCEA-BD16696AFC09"),
+                StripePriceId = "YOUR_STRIPE_PRICE_ID",
+                StripeProductId = "YOUR_STRIPE_PRODUCT_ID",
+                Description = "This is a basic test subscription",
+                Name = "Basic Subscription",
+                Price = 10.00m
+            },
             new()
             {
                 Id = new Guid("CDB8E8AC-27E8-430A-B67D-03C2F3E85273"),
-                StripePriceId = "price_1OnKKcBuMtj0mRD4Eyo3m038",
+                StripePriceId = "YOUR_STRIPE_PRICE_ID",
+                StripeProductId = "YOUR_STRIPE_PRODUCT_ID",
                 Description = "This is a standard test subscription",
                 Name = "Standard Subscription",
                 Price = 20.00m
@@ -70,7 +80,8 @@ public class ApplicationContext(DbContextOptions<ApplicationContext> options) : 
             new()
             {
                 Id = new Guid("846C0B14-BA0C-4757-8D7F-40D895A7EBC2"),
-                StripePriceId = "price_1OnKLEBuMtj0mRD4Hgv3DV5o",
+                StripePriceId = "YOUR_STRIPE_PRICE_ID",
+                StripeProductId = "YOUR_STRIPE_PRODUCT_ID",
                 Description = "This is a premium subscription",
                 Name = "Premium Subscription",
                 Price = 50.00m
